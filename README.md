@@ -152,7 +152,7 @@ Both suites pass. Notable bugs they caught during the build:
 
 ## The production side
 
-`database/schema.sql` is the SQL Server schema §18 called for as the next step: 30 tables, EF6-compatible, `NVARCHAR` throughout for Bangla (§13), `DECIMAL` for money, no binary columns anywhere (§14), and indexes chosen for the queries the screens actually issue.
+`database/schema.sql` is the SQL Server schema §18 called for as the next step: 44 tables, 3 views, 2 stored procedures, EF6-compatible, `NVARCHAR` throughout for Bangla (§13), `DECIMAL` for money, no binary columns anywhere (§14), and indexes chosen for the queries the screens actually issue.
 
 Two things are procedures rather than constraints, because a constraint cannot express them:
 
