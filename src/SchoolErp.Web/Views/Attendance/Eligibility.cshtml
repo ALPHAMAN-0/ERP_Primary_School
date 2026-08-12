@@ -1,0 +1,28 @@
+@model IEnumerable<SchoolErp.Web.Controllers.AttendanceController.EligibilityRow>
+@{ ViewBag.Title = "Eligibility Watchlist"; }
+
+<div class="page-head">
+    <div>
+        <h1 class="page-title">Eligibility Watchlist</h1>
+        <p class="page-sub">
+            §6 — the board will not forward a candidate below @ViewBag.Threshold% attendance.
+            Flagged here while there is still session left to recover.
+        </p>
+    </div>
+</div>
+
+<table class="table table-compact">
+    <thead><tr><th>Student</th><th>Class</th><th class="text-end">Present</th><th class="text-end">Rate</th></tr></thead>
+    <tbody>
+    @foreach (var row in Model)
+    {
+        <tr>
+            <td>@Html.ActionLink(row.FullName, "Details", "Students", new { id = row.StudentId }, null)
+                <div class="cell-sub mono">@row.StudentId</div></td>
+            <td>@row.ClassName</td>
+            <td class="text-end">@row.PresentCount / @row.TotalRecords</td>
+            <td class="text-end"><strong class="mark-failed">@row.AttendancePercent.ToString("0.0")%</strong></td>
+        </tr>
+    }
+    </tbody>
+</table>

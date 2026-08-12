@@ -1,0 +1,23 @@
+@model IEnumerable<SchoolErp.Web.Data.Entities.Notice>
+@{ ViewBag.Title = "Notice Board"; }
+
+<div class="page-head">
+    <h1 class="page-title">Notice Board</h1>
+    @if (User.IsInRole("ADMIN") || User.IsInRole("TEACHER"))
+    {
+        @Html.ActionLink("Publish notice", "Create", null, new { @class = "btn btn-primary no-print" })
+    }
+</div>
+
+@foreach (var notice in Model)
+{
+    <article class="notice @(notice.Priority == "urgent" ? "notice-urgent" : "") @(notice.IsPinned ? "notice-pinned" : "")">
+        <h2 class="notice-title">@notice.Title</h2>
+        <div class="notice-meta">
+            @notice.PublishedOn.ToString("dd MMM yyyy") · @notice.Audience
+            @if (notice.IsPinned) { <span class="badge">Pinned</span> }
+            @if (notice.Priority == "urgent") { <span class="badge badge-bad">Urgent</span> }
+        </div>
+        <p class="notice-body">@notice.Body</p>
+    </article>
+}

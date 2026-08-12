@@ -1,0 +1,85 @@
+@model SchoolErp.Web.ViewModels.StudentDetailViewModel
+@{ ViewBag.Title = Model.Student.FullName; }
+
+<div class="page-head">
+    <div>
+        <h1 class="page-title">@Model.Student.FullName</h1>
+        <p class="page-sub bn">@Model.Student.FullNameBn</p>
+        <p class="page-sub">
+            @(Model.Enrolment == null ? "Not enrolled" : Model.Enrolment.ClassSection.DisplayName)
+            · Student ID <span class="mono">@Model.Student.StudentId</span>
+        </p>
+    </div>
+</div>
+
+<div class="grid-2">
+    <section class="card">
+        <h2 class="card-title">Profile</h2>
+        <dl class="dl">
+            <dt>Student ID</dt><dd class="mono">@Model.Student.StudentId</dd>
+            <dt>Date of birth</dt><dd>@Model.Student.DateOfBirth.ToString("dd MMM yyyy") (@AcademicCalendar.AgeOn(Model.Student.DateOfBirth, DateTime.Now) years)</dd>
+            <dt>Gender</dt><dd>@Model.Student.Gender</dd>
+            <dt>Religion</dt><dd>@Model.Student.Religion</dd>
+            <dt>Blood group</dt><dd>@(Model.Student.BloodGroup ?? "—")</dd>
+            <dt>Admitted</dt><dd>@Model.Student.AdmittedOn.ToString("dd MMM yyyy")</dd>
+            <dt>Status</dt><dd>@Model.Student.Status</dd>
+        </dl>
+    </section>
+
+    <section class="card">
+        <h2 class="card-title">Guardian</h2>
+        <dl class="dl">
+            <dt>Father</dt><dd>@Model.Guardian.FatherName</dd>
+            <dt>Mother</dt><dd>@Model.Guardian.MotherName</dd>
+            <dt>Mobile</dt><dd class="mono">@Model.Guardian.Mobile</dd>
+            <dt>Address</dt><dd>@Model.Guardian.Address</dd>
+        </dl>
+
+        @if (Model.Siblings.Any())
+        {
+            @* §10 — one guardian account, several children. *@
+            <h3 class="card-subtitle">Siblings enrolled</h3>
+            <ul class="plain-list">
+                @foreach (var sibling in Model.Siblings)
+                {
+                    <li>@Html.ActionLink(sibling.FullName, "Details", new { id = sibling.StudentId })</li>
+                }
+            </ul>
+        }
+    </section>
+</div>
+
+<div class="stat-row">
+    <div class="stat">
+        <div class="stat-label">Attendance</div>
+        <div class="stat-value">@Model.Attendance.Percent.ToString("0.0")%</div>
+        <div class="stat-meta">
+            @Model.Attendance.Present of @Model.Attendance.Total ·
+            @(Model.Attendance.IsEligible ? "Eligible" : Model.Attendance.Shortfall + " more days needed")
+        </div>
+    </div>
+    <div class="stat">
+        <div class="stat-label">Fees outstanding</div>
+        <div class="stat-value">@Model.Ledger.Due.ToString("N0")</div>
+        <div class="stat-meta">@(Model.Ledger.MonthsOverdue > 0 ? Model.Ledger.MonthsOverdue + " month(s) overdue" : "Settled")</div>
+    </div>
+</div>
+
+<section class="card">
+    <h2 class="card-title">Results</h2>
+    <table class="table table-compact">
+        <thead><tr><th>Examination</th><th class="text-end">Total</th><th class="text-end">GPA</th><th class="text-center">Grade</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var result in Model.Results)
+        {
+            <tr>
+                <td>@result.ExamTerm.Name</td>
+                <td class="text-end">@result.TotalMarks / @result.TotalFullMarks</td>
+                <td class="text-end"><strong>@result.Gpa.ToString("0.00")</strong></td>
+                <td class="text-center"><span class="grade grade-@result.LetterGrade.Replace("+", "plus").Replace("-", "minus")">@result.LetterGrade</span></td>
+                <td>@Html.ActionLink("Report card", "ReportCard", "Exams", new { studentId = Model.Student.StudentId, examTermId = result.ExamTermId }, new { @class = "btn btn-sm" })</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</section>

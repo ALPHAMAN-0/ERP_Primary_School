@@ -1,0 +1,97 @@
+@model SchoolErp.Web.ViewModels.SettingsViewModel
+@{ ViewBag.Title = "Settings"; }
+
+<div class="page-head"><h1 class="page-title">Settings</h1></div>
+
+<section class="card">
+    <h2 class="card-title">Modules</h2>
+    <p class="muted small">
+        §4 — every module ships in the codebase. The institution sees only what is
+        switched on here. Core modules cannot be switched off.
+    </p>
+    <table class="table table-compact">
+        <tbody>
+        @foreach (var module in Model.Modules)
+        {
+            <tr>
+                <td>
+                    <strong>@module.Name</strong>
+                    @if (module.IsCore) { <span class="badge">Core</span> }
+                </td>
+                <td class="text-end">
+                    @using (Html.BeginForm("ToggleModule", "Settings", FormMethod.Post, new { style = "display:inline" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="moduleCode" value="@module.ModuleCode" />
+                        <input type="hidden" name="enabled" value="@(!module.IsEnabled)" />
+                        <button type="submit" class="btn btn-sm @(module.IsEnabled ? "" : "btn-primary")"
+                                @(module.IsCore ? "disabled" : "")>
+                            @(module.IsEnabled ? "Switch off" : "Switch on")
+                        </button>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</section>
+
+<section class="card">
+    <h2 class="card-title">Notifications</h2>
+    <dl class="dl">
+        <dt>Email</dt><dd>Active — free tier, @Model.EmailDailyCap a day</dd>
+        <dt>SMS</dt>
+        <dd>
+            @if (Model.SmsGatewayConfigured) { <text>Active</text> }
+            else { <span class="badge badge-warn">Gateway: Not Configured</span> }
+        </dd>
+        <dt>Guardian accounts</dt><dd>@Model.GuardianCount.ToString("N0")</dd>
+        <dt>SMS cost per send</dt><dd>@Model.SmsCostPerSend.ToString("N2") BDT</dd>
+        <dt>SMS cost per year</dt><dd><strong>@Model.SmsCostPerYear.ToString("N0") BDT</strong> at two sends a month</dd>
+    </dl>
+    <p class="muted small">
+        §12 — the queue, the audience calculation and the cost projection are built;
+        only the paid provider is missing. Bangladesh bulk SMS has no free tier, so
+        buying one is the institution's decision. These are the numbers to decide with.
+    </p>
+</section>
+
+<section class="card">
+    <h2 class="card-title">Backups</h2>
+    <table class="table table-compact">
+        <thead><tr><th>Started</th><th>Status</th><th class="text-end">Size</th></tr></thead>
+        <tbody>
+        @foreach (var backup in Model.RecentBackups)
+        {
+            <tr>
+                <td>@backup.StartedAtUtc.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                <td>@backup.Status</td>
+                <td class="text-end">@(backup.SizeBytes.HasValue ? (backup.SizeBytes.Value / 1048576) + " MB" : "—")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    <p class="muted small">
+        §15 — nightly at 02:00, uploaded to Google Drive and kept for 30 days. The
+        destination is deliberately a different provider from the host: an outage on
+        one should not take out the other.
+    </p>
+</section>
+
+<section class="card">
+    <h2 class="card-title">Audit trail</h2>
+    <table class="table table-compact">
+        <thead><tr><th>When</th><th>Role</th><th>Action</th><th>Target</th></tr></thead>
+        <tbody>
+        @foreach (var entry in Model.RecentAudit)
+        {
+            <tr>
+                <td>@entry.OccurredAtUtc.ToLocalTime().ToString("dd MMM HH:mm")</td>
+                <td>@entry.RoleCode</td>
+                <td class="mono">@entry.Action</td>
+                <td>@entry.EntityKey</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</section>

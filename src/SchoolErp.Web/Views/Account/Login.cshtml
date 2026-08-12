@@ -1,0 +1,38 @@
+@{
+    ViewBag.Title = "Sign in";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign in</title>
+    @Styles.Render("~/Content/css")
+</head>
+<body class="login-page">
+<main class="login-card">
+    <div class="crest">SC</div>
+    <h1>Sign in</h1>
+    @using (Html.BeginForm("Login", "Account", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+        @Html.ValidationSummary(false, "", new { @class = "flash flash-bad" })
+
+        <label>
+            Username or guardian mobile
+            <input name="userName" class="form-control" autocomplete="username" required autofocus />
+        </label>
+        <label>
+            Password
+            <input name="password" type="password" class="form-control" autocomplete="current-password" required />
+        </label>
+        <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+    }
+    <p class="muted small">
+        Guardians sign in with the mobile number recorded at admission (§10).
+    </p>
+</main>
+</body>
+</html>

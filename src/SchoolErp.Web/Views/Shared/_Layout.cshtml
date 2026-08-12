@@ -1,0 +1,125 @@
+@using System.Configuration
+@using SchoolErp.Web.Services
+@{
+    var modules = ViewBag.Modules as IModuleService;
+    var year = ViewBag.AcademicYear as SchoolErp.Web.Data.Entities.AcademicYear;
+    var institution = ConfigurationManager.AppSettings["Institution:Name"] ?? "School & College";
+
+    // §4 — navigation is built from the module switches, so a switched-off module
+    // simply is not offered. RequireModuleAttribute is what actually enforces it;
+    // this only keeps the user from being shown a door that is locked.
+    Func<string, bool> on = code => modules == null || modules.IsEnabled(code);
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title — @institution</title>
+    @Styles.Render("~/Content/css")
+    @*
+        §13 — Bangla for student-facing documents. Loaded here rather than only on
+        the document pages because names render in Bangla across the app.
+    *@
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@@400;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+<div class="app-shell">
+
+    @if (Request.IsAuthenticated)
+    {
+        <aside class="sidebar no-print">
+            <div class="sidebar-head">
+                <div class="crest">SC</div>
+                <div>
+                    <div class="sidebar-title">@institution</div>
+                    <div class="sidebar-sub">@(year == null ? "No academic year" : "Academic Year " + year.Year)</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-group">Overview</div>
+                @Html.ActionLink("Dashboard", "Index", "Home", null, new { @class = "nav-item" })
+
+                @if (User.IsInRole("ADMIN") || User.IsInRole("TEACHER"))
+                {
+                    <div class="nav-group">Academics</div>
+                    if (on("admissions") && User.IsInRole("ADMIN"))
+                    {
+                        @Html.ActionLink("Admissions", "Create", "Admissions", null, new { @class = "nav-item" })
+                    }
+                    if (on("students"))
+                    {
+                        @Html.ActionLink("Students", "Index", "Students", null, new { @class = "nav-item" })
+                    }
+                    if (on("attendance"))
+                    {
+                        @Html.ActionLink("Attendance", "Register", "Attendance", null, new { @class = "nav-item" })
+                        @Html.ActionLink("Eligibility Watchlist", "Eligibility", "Attendance", null, new { @class = "nav-item nav-sub" })
+                    }
+                    if (on("exams"))
+                    {
+                        @Html.ActionLink("Exams & Results", "Index", "Exams", null, new { @class = "nav-item" })
+                        @Html.ActionLink("Mark Entry", "MarkEntry", "Exams", null, new { @class = "nav-item nav-sub" })
+                    }
+                }
+
+                @if (User.IsInRole("ADMIN") || User.IsInRole("ACCOUNTANT"))
+                {
+                    <div class="nav-group">Accounts</div>
+                    if (on("fees"))
+                    {
+                        @Html.ActionLink("Collect Fees", "Collect", "Fees", null, new { @class = "nav-item" })
+                        @Html.ActionLink("Dues Register", "Dues", "Fees", null, new { @class = "nav-item nav-sub" })
+                    }
+                }
+
+                <div class="nav-group">Communication</div>
+                @if (on("notices"))
+                {
+                    @Html.ActionLink("Notice Board", "Index", "Notices", null, new { @class = "nav-item" })
+                }
+
+                @if (User.IsInRole("PARENT") || User.IsInRole("STUDENT"))
+                {
+                    <div class="nav-group">Portal</div>
+                    @Html.ActionLink("My Portal", "Index", "Portal", null, new { @class = "nav-item" })
+                }
+
+                @if (User.IsInRole("ADMIN"))
+                {
+                    <div class="nav-group">System</div>
+                    @Html.ActionLink("Settings", "Index", "Settings", null, new { @class = "nav-item" })
+                }
+            </nav>
+
+            <div class="sidebar-foot">
+                <div class="user-chip">
+                    <span class="user-name">@User.Identity.Name</span>
+                </div>
+                @using (Html.BeginForm("Logout", "Account", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-link btn-sm">Sign out</button>
+                }
+            </div>
+        </aside>
+    }
+
+    <main class="content">
+        @if (TempData["Notice"] != null)
+        {
+            var tone = (TempData["NoticeTone"] as string) ?? "ok";
+            <div class="flash flash-@tone" role="status">@TempData["Notice"]</div>
+        }
+
+        @RenderBody()
+    </main>
+</div>
+
+@Scripts.Render("~/bundles/jquery")
+@Scripts.Render("~/bundles/bootstrap")
+@Scripts.Render("~/bundles/app")
+@RenderSection("scripts", required: false)
+</body>
+</html>

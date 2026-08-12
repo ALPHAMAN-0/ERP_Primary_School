@@ -1,0 +1,109 @@
+@model SchoolErp.Web.ViewModels.FeeCollectionViewModel
+@{ ViewBag.Title = "Collect Fees"; }
+
+<div class="page-head">
+    <div>
+        <h1 class="page-title">Collect Fees</h1>
+        <p class="page-sub">§11 — V1 collects manually at the office; the Accountant logs each payment.</p>
+    </div>
+</div>
+
+@using (Html.BeginForm("Collect", "Fees", FormMethod.Get, new { @class = "filter-bar no-print" }))
+{
+    <input type="search" name="q" value="@Model.Query" class="form-control"
+           placeholder="Student ID, name, or guardian mobile…" autofocus />
+    <button type="submit" class="btn">Search</button>
+}
+
+@if (Model.Matches != null && Model.Matches.Any())
+{
+    <ul class="plain-list result-list">
+        @foreach (var match in Model.Matches)
+        {
+            <li>
+                @Html.ActionLink(match.FullName + " — " + match.ClassName + " " + match.SectionName + " (" + match.StudentId + ")",
+                    "Collect", new { studentId = match.StudentId })
+            </li>
+        }
+    </ul>
+}
+
+@if (Model.Student != null && Model.Ledger != null)
+{
+    <section class="card">
+        <h2 class="card-title">@Model.Student.FullName <span class="mono muted">@Model.Student.StudentId</span></h2>
+
+        <dl class="dl">
+            <dt>Billed</dt><dd>@Model.Ledger.Billed.ToString("N2")</dd>
+            <dt>Received</dt><dd>@Model.Ledger.Paid.ToString("N2")</dd>
+            <dt>Outstanding</dt><dd><strong>@Model.Ledger.Due.ToString("N2")</strong></dd>
+            @if (Model.Ledger.MonthsOverdue > 0)
+            {
+                <dt>Overdue</dt>
+                <dd>
+                    @Model.Ledger.MonthsOverdue month(s)
+                    @if (Model.Ledger.LateFine > 0)
+                    {
+                        <span class="badge badge-warn">Late fine @Model.Ledger.LateFine.ToString("N0")</span>
+                    }
+                </dd>
+            }
+        </dl>
+
+        @if (Model.Ledger.Due > 0)
+        {
+            using (Html.BeginForm("Collect", "Fees", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="studentId" value="@Model.Student.StudentId" />
+                <div class="field-grid">
+                    <label>Amount received
+                        <input name="amount" type="number" step="0.01" min="0.01"
+                               max="@Model.Ledger.Due" value="@Model.Ledger.Due" class="form-control" required />
+                        <span class="hint">Cannot exceed the outstanding balance.</span>
+                    </label>
+                    <label>Method
+                        <select name="method" class="form-select">
+                            <option value="CASH">Cash at office</option>
+                            <option value="CHEQUE">Cheque</option>
+                            <option value="BANK">Bank deposit slip</option>
+                            <option value="BKASH" disabled>bKash — not configured</option>
+                            <option value="NAGAD" disabled>Nagad — not configured</option>
+                        </select>
+                    </label>
+                    <label class="span-2">Particulars
+                        <input name="particulars" class="form-control" value="Tuition and exam fees" />
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Record payment</button>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="muted">Fully settled for the year to date.</p>
+        }
+    </section>
+
+    if (Model.RecentPayments != null && Model.RecentPayments.Any())
+    {
+        <section class="card">
+            <h2 class="card-title">Receipts issued</h2>
+            <table class="table table-compact">
+                <thead><tr><th>Receipt</th><th>Date</th><th class="text-end">Amount</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var payment in Model.RecentPayments)
+                {
+                    <tr>
+                        <td class="mono">@payment.ReceiptNo</td>
+                        <td>@payment.ReceivedOn.ToString("dd MMM yyyy")</td>
+                        <td class="text-end">@payment.Amount.ToString("N2")</td>
+                        <td>@Html.ActionLink("Print", "Receipt", new { id = payment.PaymentId }, new { @class = "btn btn-sm" })</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </section>
+    }
+}

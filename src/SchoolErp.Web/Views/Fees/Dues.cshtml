@@ -1,0 +1,36 @@
+@model SchoolErp.Web.ViewModels.DuesViewModel
+@{ ViewBag.Title = "Dues Register"; }
+
+<div class="page-head">
+    <div>
+        <h1 class="page-title">Dues Register</h1>
+        <p class="page-sub">@Model.Rows.Count.ToString("N0") students with an outstanding balance</p>
+    </div>
+    <button onclick="window.print()" class="btn no-print">Print</button>
+</div>
+
+<div class="stat-row">
+    <div class="stat"><div class="stat-label">Billed</div><div class="stat-value">@Model.TotalBilled.ToString("N0")</div></div>
+    <div class="stat"><div class="stat-label">Collected</div><div class="stat-value">@Model.TotalCollected.ToString("N0")</div><div class="stat-meta">@Model.CollectionRate.ToString("0.0")% collection rate</div></div>
+    <div class="stat"><div class="stat-label">Outstanding</div><div class="stat-value">@Model.TotalDue.ToString("N0")</div></div>
+</div>
+
+<table class="table table-compact">
+    <thead>
+    <tr><th>Student</th><th>Class</th><th>Guardian</th><th class="text-end">Billed</th><th class="text-end">Paid</th><th class="text-end">Due</th><th class="no-print"></th></tr>
+    </thead>
+    <tbody>
+    @foreach (var row in Model.Rows)
+    {
+        <tr>
+            <td>@row.FullName<div class="cell-sub mono">@row.StudentId</div></td>
+            <td>@row.ClassName</td>
+            <td>@row.GuardianName<div class="cell-sub mono">@row.GuardianMobile</div></td>
+            <td class="text-end">@row.Billed.ToString("N0")</td>
+            <td class="text-end">@row.Paid.ToString("N0")</td>
+            <td class="text-end"><strong>@row.Due.ToString("N0")</strong></td>
+            <td class="no-print">@Html.ActionLink("Collect", "Collect", new { studentId = row.StudentId }, new { @class = "btn btn-sm" })</td>
+        </tr>
+    }
+    </tbody>
+</table>

@@ -1,0 +1,95 @@
+@model SchoolErp.Web.ViewModels.AdmissionFormViewModel
+@{ ViewBag.Title = "New Admission"; }
+
+<div class="page-head">
+    <div>
+        <h1 class="page-title">New Admission</h1>
+        <p class="page-sub">Enrol a student and issue a permanent identifier (§8).</p>
+    </div>
+</div>
+
+<div class="grid-2">
+    @using (Html.BeginForm("Create", "Admissions", FormMethod.Post, new { @class = "card" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(false, "", new { @class = "flash flash-bad" })
+
+        <h2 class="card-title">Student</h2>
+        <div class="field-grid">
+            <label>Name in English<input name="FullName" class="form-control" required value="@(Model.Request == null ? "" : Model.Request.FullName)" /></label>
+            <label>নাম (বাংলা)<input name="FullNameBn" class="form-control bn" required value="@(Model.Request == null ? "" : Model.Request.FullNameBn)" /></label>
+            <label>Date of birth<input name="DateOfBirth" type="date" class="form-control" required /></label>
+            <label>Gender
+                <select name="Gender" class="form-select"><option>Male</option><option>Female</option></select>
+            </label>
+        </div>
+
+        <h2 class="card-title">Placement</h2>
+        <div class="field-grid">
+            <label>Class
+                <select name="ClassSectionId" class="form-select" required>
+                    @foreach (var s in Model.Sections)
+                    {
+                        <option value="@s.ClassSectionId">@s.DisplayName</option>
+                    }
+                </select>
+            </label>
+            <label>Optional (4th) subject
+                <select name="OptionalSubjectId" class="form-select">
+                    <option value="">None</option>
+                    @foreach (var subject in Model.OptionalSubjects)
+                    {
+                        <option value="@subject.SubjectId">@subject.Name</option>
+                    }
+                </select>
+            </label>
+            <label>Fee waiver
+                <select name="WaiverCode" class="form-select">
+                    @foreach (var waiver in Model.Waivers)
+                    {
+                        <option value="@waiver.Code">@waiver.Name (@waiver.Percent.ToString("0")%)</option>
+                    }
+                </select>
+            </label>
+        </div>
+
+        <h2 class="card-title">Guardian</h2>
+        <p class="muted small">
+            §10 — a guardian account can link to several children. If this family already
+            has a student here, the office links to the existing account rather than
+            creating a second one.
+        </p>
+        <div class="field-grid">
+            <label>Father's name<input name="FatherName" class="form-control" required /></label>
+            <label>Mother's name<input name="MotherName" class="form-control" required /></label>
+            <label>Guardian mobile
+                <input name="GuardianMobile" class="form-control" required pattern="01[3-9][0-9]{8}" placeholder="01712345678" />
+                <span class="hint">11 digits beginning 01. This becomes the guardian's sign-in.</span>
+            </label>
+            <label>Guardian NID<input name="GuardianNid" class="form-control" /></label>
+            <label class="span-2">Address<input name="Address" class="form-control" required /></label>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Admit student</button>
+        </div>
+    }
+
+    <aside class="card">
+        <h2 class="card-title">Identifier to be issued</h2>
+        <div class="id-preview mono">@Model.NextIdentifier</div>
+        <div class="id-parts">
+            <div><span class="mono">@Model.NextIdentifier.Substring(0, 2)</span><span class="hint">Year</span></div>
+            <div><span class="mono">@Model.NextIdentifier.Substring(2, 2)</span><span class="hint">Month</span></div>
+            <div><span class="mono">@Model.NextIdentifier.Substring(4)</span><span class="hint">Serial</span></div>
+        </div>
+        <dl class="dl">
+            <dt>Issued this month</dt><dd>@Model.Capacity.Issued.ToString("N0")</dd>
+            <dt>Remaining</dt><dd>@Model.Capacity.Remaining.ToString("N0") of @Model.Capacity.Capacity.ToString("N0")</dd>
+        </dl>
+        <p class="muted small">
+            §8 — serials never rewind. Withdrawing or graduating a student does not free
+            their number, which is what makes the identifier safe to print on a certificate.
+        </p>
+    </aside>
+</div>

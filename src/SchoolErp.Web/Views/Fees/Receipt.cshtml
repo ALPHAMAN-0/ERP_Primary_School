@@ -1,0 +1,66 @@
+@using System.Configuration
+@using SchoolErp.Domain.Common
+@model SchoolErp.Web.Data.Entities.Payment
+@{
+    ViewBag.Title = "Receipt " + Model.ReceiptNo;
+    var institution = ConfigurationManager.AppSettings["Institution:Name"];
+    var institutionBn = ConfigurationManager.AppSettings["Institution:NameBn"];
+}
+
+<div class="no-print page-head">
+    <h1 class="page-title">Money Receipt</h1>
+    <button onclick="window.print()" class="btn btn-primary">Print</button>
+</div>
+
+<article class="doc">
+    <header class="doc-head">
+        <div class="doc-inst-bn bn">@institutionBn</div>
+        <div class="doc-inst">@institution</div>
+        <div class="doc-kind">Money Receipt / রসিদ</div>
+    </header>
+
+    <table class="doc-table">
+        <tr>
+            <th style="width:26%">Receipt No.</th><td>@Model.ReceiptNo</td>
+            <th style="width:18%">Date</th><td>@Model.ReceivedOn.ToString("dd MMM yyyy")</td>
+        </tr>
+        <tr>
+            <th>Student</th>
+            <td>@Model.Student.FullName<div class="bn">@Model.Student.FullNameBn</div></td>
+            <th>Student ID</th><td class="mono">@Model.StudentId</td>
+        </tr>
+        <tr>
+            <th>Guardian</th>
+            <td colspan="3">@Model.Student.Guardian.FatherName · @Model.Student.Guardian.Mobile</td>
+        </tr>
+    </table>
+
+    <table class="doc-table mt">
+        <thead><tr><th>Particulars / বিবরণ</th><th class="text-end" style="width:26%">Amount</th></tr></thead>
+        <tbody>
+        <tr>
+            <td>@(Model.Particulars ?? "Fee payment")</td>
+            <td class="text-end">@BanglaFormatter.FormatTaka(Model.Amount, 2)</td>
+        </tr>
+        <tr class="doc-total">
+            <td>Total received</td>
+            <td class="text-end">@BanglaFormatter.FormatTaka(Model.Amount, 2)</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <p class="doc-note">
+        Received with thanks the sum of <strong>@BanglaFormatter.FormatTaka(Model.Amount, 2)</strong>
+        (<span class="bn">@BanglaFormatter.ToBanglaDigits(Model.Amount, 2) টাকা</span>)
+        by <strong>@Model.PaymentMethod</strong>.
+    </p>
+
+    <div class="doc-sign">
+        <div>Payer's Signature</div>
+        <div>Accountant</div>
+    </div>
+
+    <footer class="doc-watermark">
+        @BanglaFormatter.FormatDate(Model.ReceivedOn) — computer-generated receipt, valid without a seal.
+    </footer>
+</article>

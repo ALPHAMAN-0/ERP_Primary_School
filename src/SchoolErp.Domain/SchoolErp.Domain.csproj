@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The domain rules live in netstandard2.0 rather than in the web project.
+
+    Two reasons:
+      1. .NET Framework 4.8 can reference netstandard2.0, so the ASP.NET MVC 5
+         app consumes this directly (§2).
+      2. It builds and unit-tests on any platform, which means the rules that
+         matter most — the GPA engine (§7), the identifier allocator (§8), the
+         fee calculation (§11) — are verified rather than assumed.
+
+    Nothing here references System.Web, EF, or any storage. It is pure logic,
+    and it is the C# counterpart of docs/assets/js/core/domain.js.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>7.3</LangVersion>
+    <ProjectGuid>{2F7C9A31-4B8E-4D62-A5F0-1E93C6B84D22}</ProjectGuid>
+    <RootNamespace>SchoolErp.Domain</RootNamespace>
+    <AssemblyName>SchoolErp.Domain</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <Description>Domain rules for the School and College ERP — grading, student identity, attendance, and fees.</Description>
+  </PropertyGroup>
+
+</Project>
