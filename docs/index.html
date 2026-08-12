@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Shahjalal School &amp; College — ERP</title>
+  <meta name="description" content="A working browser twin of a School &amp; College ERP: 3,000+ students, eight roles, board-accurate GPA, and every module from the requirements specification.">
+  <meta name="theme-color" content="#0b6b4f">
+  <meta name="color-scheme" content="light dark">
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b6b4f'/%3E%3Ctext x='16' y='22' font-family='system-ui,sans-serif' font-size='15' font-weight='700' fill='white' text-anchor='middle'%3ESC%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/css/app.css">
+
+  <!-- Bangla typography for report cards, admit cards and receipts (§13).
+       Loaded from the local system first; the webfont is a progressive
+       enhancement and the app is fully usable without it. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" media="print" onload="this.media='all'"
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700&display=swap">
+</head>
+<body>
+  <div id="app">
+    <!-- First-paint placeholder. The shell replaces this as soon as the module
+         graph resolves; it exists so the page never flashes blank. -->
+    <div style="display:grid;place-items:center;min-height:100vh;gap:14px;text-align:center;padding:24px">
+      <div style="width:46px;height:46px;border-radius:12px;background:linear-gradient(150deg,#085239,#0b6b4f);display:grid;place-items:center;color:#fff;font-weight:700;font-size:17px">SC</div>
+      <div>
+        <div style="font-weight:640;font-size:16px;letter-spacing:-.01em">Shahjalal School &amp; College</div>
+        <div style="font-size:13px;color:#898781;margin-top:3px">Generating the roster…</div>
+      </div>
+      <noscript>
+        <p style="max-width:44ch;font-size:13px;color:#52514e;line-height:1.6">
+          This demo runs the ERP's domain logic in the browser, so JavaScript is required.
+          The production system is server-rendered ASP.NET MVC and does not have this constraint.
+        </p>
+      </noscript>
+    </div>
+  </div>
+
+  <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>

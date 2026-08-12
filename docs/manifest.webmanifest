@@ -1,0 +1,27 @@
+{
+  "name": "Shahjalal School & College ERP",
+  "short_name": "SC ERP",
+  "description": "School and College ERP — admissions, attendance, exams, fees, and a parent portal.",
+  "start_url": "./index.html#/dashboard",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f4f5f3",
+  "theme_color": "#0b6b4f",
+  "lang": "en",
+  "categories": ["education", "productivity", "business"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='42' fill='%230b6b4f'/%3E%3Ctext x='96' y='128' font-family='system-ui,sans-serif' font-size='88' font-weight='700' fill='white' text-anchor='middle'%3ESC%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%230b6b4f'/%3E%3Ctext x='256' y='342' font-family='system-ui,sans-serif' font-size='234' font-weight='700' fill='white' text-anchor='middle'%3ESC%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
