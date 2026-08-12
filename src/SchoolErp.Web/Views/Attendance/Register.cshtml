@@ -1,0 +1,106 @@
+@model SchoolErp.Web.ViewModels.RegisterViewModel
+@{ ViewBag.Title = "Attendance Register"; }
+
+<div class="page-head">
+    <div>
+        <h1 class="page-title">Attendance Register</h1>
+        <p class="page-sub">
+            @Model.SectionName · @Model.Date.ToString("dddd, dd MMM yyyy")
+            @if (Model.IsPeriodWise)
+            {
+                <span class="badge badge-info">Period @Model.Period — college section records per period (§6)</span>
+            }
+            else
+            {
+                <span class="badge">Daily — school section records once a day (§6)</span>
+            }
+        </p>
+    </div>
+</div>
+
+@using (Html.BeginForm("Register", "Attendance", FormMethod.Get, new { @class = "filter-bar no-print" }))
+{
+    <select name="classSectionId" class="form-select" onchange="this.form.submit()">
+        @foreach (var s in Model.Sections)
+        {
+            <option value="@s.ClassSectionId" selected="@(s.ClassSectionId == Model.ClassSectionId)">@s.DisplayName</option>
+        }
+    </select>
+    <input type="date" name="date" class="form-control" value="@Model.Date.ToString("yyyy-MM-dd")" onchange="this.form.submit()" />
+    @* Code context here — the void <input> above closed markup mode, so no '@'. *@
+    if (Model.IsPeriodWise)
+    {
+        <select name="period" class="form-select" onchange="this.form.submit()">
+            @for (byte p = 1; p <= 6; p++)
+            {
+                <option value="@p" selected="@(p == Model.Period)">Period @p</option>
+            }
+        </select>
+    }
+}
+
+@if (!Model.IsWorkingDay)
+{
+    <div class="flash flash-warn">
+        @Model.Date.ToString("dd MMM yyyy") is not a working day — the institution runs
+        Sunday to Thursday. Attendance cannot be recorded against it.
+    </div>
+}
+else
+{
+    using (Html.BeginForm("Register", "Attendance", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="classSectionId" value="@Model.ClassSectionId" />
+        <input type="hidden" name="date" value="@Model.Date.ToString("yyyy-MM-dd")" />
+        <input type="hidden" name="period" value="@Model.Period" />
+
+        <table class="table table-compact">
+            <thead>
+            <tr>
+                <th style="width:70px">Roll</th>
+                <th>Student</th>
+                <th style="width:260px" class="text-center">Attendance</th>
+                <th style="width:160px" class="text-end">Year to date</th>
+            </tr>
+            </thead>
+            <tbody>
+            @for (var i = 0; i < Model.Rows.Count; i++)
+            {
+                var row = Model.Rows[i];
+                <tr>
+                    <td><strong>@row.RollNumber</strong></td>
+                    <td>
+                        @row.FullName
+                        <input type="hidden" name="rows[@i].StudentId" value="@row.StudentId" />
+                    </td>
+                    <td class="text-center status-group">
+                        @foreach (var status in new[] { 'P', 'A', 'L', 'E' })
+                        {
+                            <label class="status-option status-@status">
+                                <input type="radio" name="rows[@i].Status" value="@status" checked="@(row.Status == status)" />
+                                <span>@status</span>
+                            </label>
+                        }
+                    </td>
+                    <td class="text-end">
+                        @row.YearToDatePercent.ToString("0.0")%
+                        @if (!row.IsEligible)
+                        {
+                            <span class="badge badge-bad">Below 70%</span>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+
+        <div class="form-actions no-print">
+            <button type="submit" class="btn btn-primary">Save register</button>
+            <span class="muted small">
+                P present · A absent · L late · E excused. Late counts as present —
+                the board measures presence, not punctuality (§6).
+            </span>
+        </div>
+    }
+}

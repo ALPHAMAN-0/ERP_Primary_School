@@ -1,0 +1,25 @@
+@{ ViewBag.Title = "Dashboard"; }
+<div class="page-head">
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-sub">Signed in as @User.Identity.Name</p>
+</div>
+<div class="grid-2">
+    <section class="card">
+        <h2 class="card-title">Today</h2>
+        <p>@DateTime.Now.ToString("dddd, dd MMMM yyyy")</p>
+        <p class="muted small">
+            @(AcademicCalendar.IsWorkingDay(DateTime.Now)
+                ? "A working day — the institution runs Sunday to Thursday."
+                : "Not a working day. Attendance cannot be recorded today.")
+        </p>
+    </section>
+    <section class="card">
+        <h2 class="card-title">Quick actions</h2>
+        <ul class="plain-list">
+            <li>@Html.ActionLink("Take attendance", "Register", "Attendance")</li>
+            <li>@Html.ActionLink("Enter marks", "MarkEntry", "Exams")</li>
+            <li>@Html.ActionLink("Collect a fee", "Collect", "Fees")</li>
+            <li>@Html.ActionLink("Find a student", "Index", "Students")</li>
+        </ul>
+    </section>
+</div>

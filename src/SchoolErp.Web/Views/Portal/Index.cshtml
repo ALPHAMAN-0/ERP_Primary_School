@@ -1,0 +1,66 @@
+@model SchoolErp.Web.ViewModels.StudentDetailViewModel
+@{
+    ViewBag.Title = "My Portal";
+    var children = ViewBag.Children as IEnumerable<SchoolErp.Web.Data.Entities.Student>;
+}
+
+<div class="page-head">
+    <div>
+        <h1 class="page-title">@Model.Student.FullName</h1>
+        <p class="page-sub">
+            @(Model.Enrolment == null ? "" : Model.Enrolment.ClassSection.DisplayName)
+            · Roll @(Model.Enrolment == null ? 0 : Model.Enrolment.RollNumber)
+            · <span class="mono">@Model.Student.StudentId</span>
+        </p>
+    </div>
+</div>
+
+@if (children != null && children.Count() > 1)
+{
+    @* §10 — the child switcher. One guardian account, several children. *@
+    <div class="child-switcher no-print">
+        <span class="muted small">Viewing</span>
+        @foreach (var child in children)
+        {
+            @Html.ActionLink(child.FullName, "Index", new { childId = child.StudentId },
+                new { @class = "chip " + (child.StudentId == (string)ViewBag.SelectedChildId ? "chip-on" : "") })
+        }
+    </div>
+}
+
+<div class="stat-row">
+    <div class="stat">
+        <div class="stat-label">Attendance</div>
+        <div class="stat-value">@Model.Attendance.Percent.ToString("0.0")%</div>
+        <div class="stat-meta">@Model.Attendance.Present of @Model.Attendance.Total days</div>
+    </div>
+    <div class="stat">
+        <div class="stat-label">Fees outstanding</div>
+        <div class="stat-value">@Model.Ledger.Due.ToString("N0")</div>
+    </div>
+</div>
+
+<section class="card">
+    <h2 class="card-title">Published results</h2>
+    @if (!Model.Results.Any())
+    {
+        <p class="muted">No results have been published yet.</p>
+    }
+    else
+    {
+        <table class="table table-compact">
+            <thead><tr><th>Examination</th><th class="text-end">GPA</th><th class="text-center">Grade</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var result in Model.Results)
+            {
+                <tr>
+                    <td>@result.ExamTerm.Name</td>
+                    <td class="text-end"><strong>@result.Gpa.ToString("0.00")</strong></td>
+                    <td class="text-center"><span class="grade grade-@result.LetterGrade.Replace("+", "plus").Replace("-", "minus")">@result.LetterGrade</span></td>
+                    <td>@Html.ActionLink("Report card", "ReportCard", "Exams", new { studentId = Model.Student.StudentId, examTermId = result.ExamTermId }, new { @class = "btn btn-sm" })</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</section>

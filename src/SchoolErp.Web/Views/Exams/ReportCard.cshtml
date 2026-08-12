@@ -1,0 +1,170 @@
+@using System.Configuration
+@using SchoolErp.Domain.Common
+@model SchoolErp.Web.ViewModels.ReportCardViewModel
+@{
+    ViewBag.Title = "Report Card";
+    var institution = ConfigurationManager.AppSettings["Institution:Name"];
+    var institutionBn = ConfigurationManager.AppSettings["Institution:NameBn"];
+    var eiin = ConfigurationManager.AppSettings["Institution:Eiin"];
+    var group = Model.Enrolment != null && Model.Enrolment.ClassSection != null
+        ? Model.Enrolment.ClassSection.Group
+        : null;
+    var hasOptional = Model.Result.Rows.Any(r => r.IsOptional && r.Obtained.HasValue);
+}
+
+@*
+    §13 — the transcript.
+
+    English and Bangla side by side throughout: names, month names and numerals.
+    A transcript that reads "GPA ৪.৫০" beside "12 August 2026" is half-translated,
+    which is worse than either language alone.
+*@
+
+<div class="no-print page-head">
+    <h1 class="page-title">Report Card</h1>
+    <div>
+        <button onclick="window.print()" class="btn btn-primary">Print</button>
+        @Html.ActionLink("Back to tabulation", "Index", new { classSectionId = Model.Enrolment.ClassSectionId, examTermId = Model.Term.ExamTermId }, new { @class = "btn" })
+    </div>
+</div>
+
+<article class="doc">
+    <header class="doc-head">
+        <div class="doc-inst-bn bn">@institutionBn</div>
+        <div class="doc-inst">@institution</div>
+        <div class="doc-addr">EIIN @eiin</div>
+        <div class="doc-kind">Academic Transcript — @Model.Term.Name</div>
+    </header>
+
+    <table class="doc-table">
+        <tr>
+            <th style="width:22%">Name / নাম</th>
+            <td>
+                @Model.Student.FullName
+                <div class="bn">@Model.Student.FullNameBn</div>
+            </td>
+            <th style="width:18%">Student ID</th>
+            <td style="width:22%">@Model.Student.StudentId</td>
+        </tr>
+        <tr>
+            <th>Father / পিতা</th>
+            <td>
+                @Model.Guardian.FatherName
+                <div class="bn">@Model.Guardian.FatherNameBn</div>
+            </td>
+            <th>Class / শ্রেণি</th>
+            <td>@(Model.Enrolment.ClassSection == null ? "" : Model.Enrolment.ClassSection.DisplayName)</td>
+        </tr>
+        <tr>
+            <th>Mother / মাতা</th>
+            <td>
+                @Model.Guardian.MotherName
+                <div class="bn">@Model.Guardian.MotherNameBn</div>
+            </td>
+            <th>Roll / রোল</th>
+            <td>
+                @Model.Enrolment.RollNumber
+                <span class="muted">(@BanglaFormatter.ToBanglaDigits(Model.Enrolment.RollNumber))</span>
+            </td>
+        </tr>
+        @if (group != null)
+        {
+            <tr>
+                <th>Group / বিভাগ</th>
+                <td>@group.Name <span class="bn">(@group.NameBn)</span></td>
+                <th>Date of Birth</th>
+                <td>@Model.Student.DateOfBirth.ToString("dd MMM yyyy")</td>
+            </tr>
+        }
+    </table>
+
+    <table class="doc-table mt">
+        <thead>
+        <tr>
+            <th style="width:38%">Subject / বিষয়</th>
+            <th class="text-center">Full Marks</th>
+            <th class="text-center">Obtained</th>
+            <th class="text-center">Letter Grade</th>
+            <th class="text-center">Grade Point</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var row in Model.Result.Rows.Where(r => r.Obtained.HasValue))
+        {
+            <tr>
+                <td>
+                    @row.Name@(row.IsOptional ? " *" : "")
+                    <div class="bn muted">@row.NameBn</div>
+                </td>
+                <td class="text-center">@row.FullMarks</td>
+                <td class="text-center @(row.Passed == false ? "mark-failed" : "")">@row.Obtained</td>
+                <td class="text-center"><strong>@row.Letter</strong></td>
+                <td class="text-center">@(row.GradePoint.HasValue ? row.GradePoint.Value.ToString("0.00") : "—")</td>
+            </tr>
+        }
+        <tr class="doc-total">
+            <td>Total</td>
+            <td class="text-center">@Model.Result.TotalFullMarks</td>
+            <td class="text-center">@Model.Result.TotalMarks</td>
+            <td class="text-center">@(Model.Result.Passed ? Model.Result.Letter : "F")</td>
+            <td class="text-center">@(Model.Result.Passed ? Model.Result.Gpa.ToString("0.00") : "0.00")</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <table class="doc-table mt">
+        <tr>
+            <th>Result / ফলাফল</th>
+            <td class="@(Model.Result.Passed ? "" : "mark-failed")">
+                <strong>@(Model.Result.Passed ? "PASSED / উত্তীর্ণ" : "FAILED / অকৃতকার্য")</strong>
+            </td>
+            <th>GPA</th>
+            <td>
+                <strong>@(Model.Result.Passed ? Model.Result.Gpa.ToString("0.00") : "0.00")</strong>
+                <span class="muted">
+                    (@BanglaFormatter.ToBanglaDigits(Model.Result.Passed ? Model.Result.Gpa : 0m))
+                </span>
+            </td>
+        </tr>
+        <tr>
+            <th>Class Position</th>
+            <td>@(Model.ClassPosition.HasValue ? Model.ClassPosition.Value + " of " + Model.ClassSize : "—")</td>
+            <th>Attendance</th>
+            <td>
+                @Model.Attendance.Percent.ToString("0.0")%
+                (@Model.Attendance.Present / @Model.Attendance.Total)
+            </td>
+        </tr>
+    </table>
+
+    @if (!Model.Result.Passed && Model.Result.FailedSubjectCodes.Any())
+    {
+        @* §7 — say why plainly. A guardian reading a zero GPA beside good marks
+           deserves the rule stated, not left to infer. *@
+        <p class="doc-note mark-failed">
+            <strong>Note:</strong> a letter grade of F in
+            @string.Join(", ", Model.Result.FailedSubjectCodes)
+            fails the overall result regardless of the grade points earned in other subjects.
+        </p>
+    }
+
+    @if (hasOptional)
+    {
+        <p class="doc-note muted">
+            * Optional (4th) subject. Grade points above 2.00 are added to the GPA as a
+            bonus; the subject is excluded from the divisor, and a fail in it does not
+            affect the overall result.
+        </p>
+    }
+
+    <div class="doc-sign">
+        <div>Class Teacher</div>
+        <div>Examination Controller</div>
+        <div>Principal</div>
+    </div>
+
+    <footer class="doc-watermark">
+        Issued @DateTime.Now.ToString("dd MMM yyyy") ·
+        @BanglaFormatter.FormatDate(DateTime.Now) — computer-generated, valid without signature.
+    </footer>
+</article>

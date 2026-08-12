@@ -1,0 +1,68 @@
+@model SchoolErp.Web.ViewModels.StudentListViewModel
+@{ ViewBag.Title = "Students"; }
+
+<div class="page-head">
+    <div>
+        <h1 class="page-title">Students</h1>
+        <p class="page-sub">@Model.TotalCount.ToString("N0") enrolled students</p>
+    </div>
+    @if (User.IsInRole("ADMIN"))
+    {
+        @Html.ActionLink("New admission", "Create", "Admissions", null, new { @class = "btn btn-primary no-print" })
+    }
+</div>
+
+@using (Html.BeginForm("Index", "Students", FormMethod.Get, new { @class = "filter-bar no-print" }))
+{
+    <input type="search" name="q" value="@Model.Query" class="form-control"
+           placeholder="Name, student ID, guardian, or phone…" />
+    <select name="classSectionId" class="form-select">
+        <option value="">All classes</option>
+        @foreach (var s in Model.Sections)
+        {
+            <option value="@s.ClassSectionId" selected="@(s.ClassSectionId == Model.ClassSectionId)">@s.DisplayName</option>
+        }
+    </select>
+    <button type="submit" class="btn">Search</button>
+}
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Student</th>
+        <th>Student ID</th>
+        <th>Class</th>
+        <th>Group</th>
+        <th>Guardian</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model.Items)
+    {
+        <tr>
+            <td>
+                <div>@item.FullName</div>
+                <div class="cell-sub bn">@item.FullNameBn</div>
+            </td>
+            <td class="mono">@item.StudentId</td>
+            <td>@item.ClassName<div class="cell-sub">@item.SectionName · Roll @item.RollNumber</div></td>
+            <td>@(item.GroupName ?? "—")</td>
+            <td>@item.GuardianName<div class="cell-sub mono">@item.GuardianMobile</div></td>
+            <td>@Html.ActionLink("Open", "Details", new { id = item.StudentId }, new { @class = "btn btn-sm" })</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@if (Model.TotalPages > 1)
+{
+    <nav class="pager no-print">
+        @for (var p = Math.Max(1, Model.Page - 2); p <= Math.Min(Model.TotalPages, Model.Page + 2); p++)
+        {
+            @Html.ActionLink(p.ToString(), "Index",
+                new { q = Model.Query, classSectionId = Model.ClassSectionId, page = p },
+                new { @class = "pager-link " + (p == Model.Page ? "active" : "") })
+        }
+    </nav>
+}

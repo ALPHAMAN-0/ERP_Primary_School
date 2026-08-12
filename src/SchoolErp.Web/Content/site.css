@@ -1,0 +1,222 @@
+/* =============================================================================
+   Application styling, layered on Bootstrap 5 (§2).
+
+   Bootstrap supplies the grid and the form controls; this file supplies the
+   shell, the data-dense tables an office actually uses, and the printable
+   documents (§13). Most parents and teachers are on phones, so everything
+   collapses to a single column below 900px.
+   ============================================================================= */
+
+:root {
+    --brand: #0b6b4f;
+    --brand-strong: #085239;
+    --sidebar: #0f1d19;
+    --page: #f4f5f3;
+    --surface: #ffffff;
+    --ink: #14161a;
+    --ink-2: #52514e;
+    --ink-3: #8b8a83;
+    --line: #e3e4df;
+    --ok: #0ca30c;
+    --warn: #fab219;
+    --bad: #d03b3b;
+    --radius: 8px;
+    --font-bn: "Noto Sans Bengali", "SolaimanLipi", sans-serif;
+}
+
+body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+}
+
+.bn { font-family: var(--font-bn); }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+.muted { color: var(--ink-3); }
+.small { font-size: 12px; }
+.text-end { text-align: right; }
+.text-center { text-align: center; }
+.mt { margin-top: 14px; }
+
+/* ---- Shell ---------------------------------------------------------------- */
+.app-shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+
+.sidebar {
+    background: var(--sidebar);
+    color: #cfded8;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+.sidebar-head { display: flex; gap: 10px; align-items: center; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,.08); }
+.crest { width: 32px; height: 32px; border-radius: 8px; background: var(--brand); color: #fff; display: grid; place-items: center; font-weight: 700; }
+.sidebar-title { color: #fff; font-weight: 600; font-size: 13px; }
+.sidebar-sub { font-size: 11px; color: #7d968d; }
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 10px; }
+.nav-group { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: #7d968d; padding: 14px 8px 5px; font-weight: 600; }
+.nav-item { display: block; padding: 7px 9px; border-radius: 6px; color: #cfded8; text-decoration: none; font-size: 13px; }
+.nav-item:hover { background: rgba(255,255,255,.07); color: #fff; }
+.nav-sub { padding-left: 22px; font-size: 12.5px; color: #9db3aa; }
+.sidebar-foot { padding: 12px; border-top: 1px solid rgba(255,255,255,.08); font-size: 12px; }
+.user-name { color: #fff; }
+
+.content { padding: 22px; min-width: 0; }
+
+.page-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+.page-title { font-size: 21px; font-weight: 650; margin: 0; letter-spacing: -.02em; }
+.page-sub { color: var(--ink-2); font-size: 13px; margin: 4px 0 0; }
+
+/* ---- Cards and layout ----------------------------------------------------- */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
+.card.narrow { max-width: 420px; }
+.card-title { font-size: 14px; font-weight: 620; margin: 0 0 10px; }
+.card-subtitle { font-size: 12.5px; font-weight: 600; margin: 14px 0 6px; color: var(--ink-2); }
+
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+.field-grid label, .card > label { display: block; font-size: 12.5px; font-weight: 550; color: var(--ink-2); margin-bottom: 10px; }
+.field-grid .span-2 { grid-column: span 2; }
+.hint { display: block; font-size: 11.5px; color: var(--ink-3); font-weight: 400; margin-top: 3px; }
+.checkbox { font-weight: 400; }
+
+.form-control, .form-select { width: 100%; padding: 7px 10px; border: 1px solid #c9cbc4; border-radius: 6px; font-size: 13px; }
+.form-control:focus, .form-select:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(11,107,79,.15); }
+.form-control.is-invalid { border-color: var(--bad); }
+.filter-bar { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 16px; }
+.filter-bar .form-select, .filter-bar .form-control { width: auto; min-width: 190px; }
+.form-actions { display: flex; gap: 10px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+
+.btn { display: inline-block; padding: 7px 13px; border: 1px solid #c9cbc4; background: #fff; border-radius: 6px; font-size: 13px; cursor: pointer; text-decoration: none; color: var(--ink); }
+.btn:hover { background: #f0f1ee; }
+.btn-primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.btn-primary:hover { background: var(--brand-strong); color: #fff; }
+.btn-sm { padding: 3px 8px; font-size: 12px; }
+.btn-block { width: 100%; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ---- Tables --------------------------------------------------------------- */
+.table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; font-size: 13px; }
+.table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); background: #fafaf8; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+.table td { padding: 9px 12px; border-bottom: 1px solid var(--line); }
+.table tbody tr:last-child td { border-bottom: 0; }
+.table-compact td, .table-compact th { padding: 6px 10px; }
+.cell-sub { font-size: 11.5px; color: var(--ink-3); }
+
+/* A failing candidate is flagged on the whole row: §7 means the consequence
+   reaches past the subject to the entire result. */
+.row-failing { background: #fdf3f3; }
+.mark-failed { color: var(--bad); font-weight: 600; }
+
+/* ---- Stats, badges, grades ------------------------------------------------ */
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
+.stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); font-weight: 600; }
+.stat-value { font-size: 23px; font-weight: 650; letter-spacing: -.02em; margin-top: 4px; }
+.stat-meta { font-size: 11.5px; color: var(--ink-2); margin-top: 2px; }
+
+.badge { display: inline-block; padding: 1px 7px; border-radius: 99px; font-size: 11px; font-weight: 600; background: #f0f1ee; color: var(--ink-2); }
+.badge-info { background: #e8f1fc; color: #12457f; }
+.badge-warn { background: #fdf3dd; color: #7a5300; }
+.badge-bad { background: #fbeaea; color: #8f1f1f; }
+
+/* The letter is always printed beside the colour — grade must never be carried
+   by colour alone. */
+.grade { display: inline-block; padding: 1px 7px; border-radius: 5px; font-weight: 700; font-size: 11.5px; color: #fff; }
+.grade-Aplus { background: #104281; }
+.grade-A { background: #1c5cab; }
+.grade-Aminus { background: #2a78d6; }
+.grade-B { background: #3987e5; }
+.grade-C { background: #5598e7; }
+.grade-D { background: #86b6ef; color: #08243f; }
+.grade-F { background: var(--bad); }
+
+/* ---- Attendance register --------------------------------------------------- */
+.status-group { display: flex; gap: 4px; justify-content: center; }
+.status-option { position: relative; }
+.status-option input { position: absolute; opacity: 0; }
+.status-option span { display: grid; place-items: center; width: 30px; height: 28px; border: 1px solid #c9cbc4; border-radius: 6px; font-size: 12px; font-weight: 650; cursor: pointer; }
+.status-option input:checked + span { color: #fff; border-color: transparent; }
+.status-P input:checked + span { background: var(--ok); }
+.status-A input:checked + span { background: var(--bad); }
+.status-L input:checked + span { background: var(--warn); color: #3d2c00; }
+.status-E input:checked + span { background: #2a78d6; }
+
+/* ---- Admissions identifier preview ----------------------------------------- */
+.id-preview { font-size: 30px; font-weight: 700; letter-spacing: .06em; text-align: center; padding: 8px 0; }
+.id-parts { display: flex; justify-content: center; gap: 18px; margin-bottom: 14px; text-align: center; }
+.id-parts span { display: block; }
+.id-parts .mono { font-weight: 650; }
+
+/* ---- Misc ------------------------------------------------------------------ */
+.dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; font-size: 13px; margin: 0; }
+.dl dt { color: var(--ink-3); font-size: 12px; }
+.dl dd { margin: 0; }
+.plain-list { list-style: none; padding: 0; margin: 0; }
+.plain-list li { padding: 4px 0; }
+.result-list li { border-bottom: 1px solid var(--line); }
+
+.flash { padding: 10px 14px; border-radius: var(--radius); margin-bottom: 16px; border-left: 3px solid var(--brand); background: var(--surface); font-size: 13px; }
+.flash-ok { border-left-color: var(--ok); }
+.flash-warn { border-left-color: var(--warn); }
+.flash-bad { border-left-color: var(--bad); }
+
+.empty-state { max-width: 60ch; margin: 60px auto; text-align: center; }
+.pager { display: flex; gap: 5px; justify-content: center; padding: 14px; }
+.pager-link { padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px; text-decoration: none; color: var(--ink-2); }
+.pager-link.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+
+.chip { display: inline-block; padding: 4px 11px; border: 1px solid #c9cbc4; border-radius: 99px; text-decoration: none; color: var(--ink-2); font-size: 12.5px; }
+.chip-on { background: var(--brand); border-color: var(--brand); color: #fff; }
+.child-switcher { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+
+.notice { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid #c9cbc4; border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
+.notice-pinned { border-left-color: var(--brand); }
+.notice-urgent { border-left-color: var(--bad); }
+.notice-title { font-size: 14.5px; font-weight: 620; margin: 0; }
+.notice-meta { font-size: 11.5px; color: var(--ink-3); margin-top: 3px; }
+.notice-body { font-size: 13px; color: var(--ink-2); margin: 8px 0 0; line-height: 1.6; }
+
+.login-page { display: grid; place-items: center; min-height: 100vh; }
+.login-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 28px; width: 340px; }
+.login-card h1 { font-size: 19px; margin: 12px 0 18px; }
+
+/* ---- Documents (§13) -------------------------------------------------------- */
+.doc { background: #fff; color: #111; padding: 26px 28px; border: 1px solid var(--line); border-radius: var(--radius); font-size: 12.5px; }
+.doc-head { text-align: center; border-bottom: 2px solid #111; padding-bottom: 11px; margin-bottom: 14px; }
+.doc-inst { font-size: 18px; font-weight: 700; }
+.doc-inst-bn { font-size: 17px; font-weight: 700; }
+.doc-addr { font-size: 11px; color: #444; }
+.doc-kind { display: inline-block; margin-top: 8px; border: 1px solid #111; border-radius: 3px; padding: 2px 12px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.doc-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.doc-table th, .doc-table td { border: 1px solid #333; padding: 5px 8px; text-align: left; }
+.doc-table th { background: #eee; font-weight: 700; font-size: 11px; text-transform: uppercase; }
+.doc-total { background: #f4f4f4; font-weight: 700; }
+.doc-note { font-size: 11px; margin-top: 8px; }
+.doc-sign { display: flex; justify-content: space-between; margin-top: 42px; font-size: 11px; }
+.doc-sign > div { border-top: 1px solid #111; padding-top: 4px; min-width: 150px; text-align: center; }
+.doc-watermark { text-align: center; font-size: 10px; color: #777; margin-top: 16px; border-top: 1px dashed #bbb; padding-top: 8px; }
+
+/* ---- Responsive: most parents and teachers are on phones (§2) --------------- */
+@media (max-width: 900px) {
+    .app-shell { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; }
+    .grid-2, .field-grid { grid-template-columns: 1fr; }
+    .field-grid .span-2 { grid-column: auto; }
+    .content { padding: 14px; }
+    .table { display: block; overflow-x: auto; }
+}
+
+/* ---- Print: report cards, receipts, registers ------------------------------- */
+@media print {
+    .no-print, .sidebar, .filter-bar, .form-actions, .pager { display: none !important; }
+    .app-shell { grid-template-columns: 1fr; }
+    body { background: #fff; font-size: 11pt; }
+    .content { padding: 0; }
+    .card, .doc, .table { border: 0; }
+    .doc { padding: 0; }
+    @page { margin: 12mm; }
+}

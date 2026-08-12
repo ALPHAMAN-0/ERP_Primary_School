@@ -15,16 +15,20 @@ The requirements pin the production stack to **ASP.NET MVC 5 / SQL Server / EF6 
 The approach here is **one spec, two runtimes**:
 
 ```
-                    spec.js  ─ the domain specification ─
-                   (grading bands, ID format, roles,
-                    module switches, fee heads, subjects)
+                    the domain specification
+             (grading bands, ID format, roles, module
+              switches, fee heads, subject curriculum)
                               │
-                ┌─────────────┴─────────────┐
-                ▼                           ▼
-        database/schema.sql          docs/ — the browser twin
-        SQL Server DDL,              the same rules in JS,
-        EF6-compatible               running client-side
-        → production                 → the live demo
+        ┌─────────────────────┼─────────────────────┐
+        ▼                     ▼                     ▼
+  src/SchoolErp.Domain   database/schema.sql   docs/ — browser twin
+  C# rules, unit-tested  SQL Server DDL        same rules in JS
+        │                     │                     │
+        └──────┬──────────────┘                     ▼
+               ▼                              the live demo
+       src/SchoolErp.Web
+       ASP.NET MVC 5 · EF6
+       → production
 ```
 
 Both sides implement the same rules from the same source of truth. The GPA engine, the `YYMMSSSS` identifier allocator, the attendance modes, the module switches and the fee ledger behave identically in the browser twin and in the SQL schema — so the demo is not a mock-up of the system, it *is* the system, minus the server.
@@ -100,6 +104,10 @@ Switching one on or off in **Settings → Modules** rewrites the navigation imme
 ## Repository layout
 
 ```
+src/
+  SchoolErp.Domain/          the rules, as netstandard2.0 — builds anywhere
+  SchoolErp.Domain.Tests/    99 xUnit tests over those rules
+  SchoolErp.Web/             ASP.NET MVC 5 on .NET Framework 4.8
 docs/                        the browser twin — GitHub Pages serves this
   index.html
   sw.js                      offline support (§17: no uptime guarantee)
@@ -152,7 +160,31 @@ Both suites pass. Notable bugs they caught during the build:
 
 ## The production side
 
-`database/schema.sql` is the SQL Server schema §18 called for as the next step: 44 tables, 3 views, 2 stored procedures, EF6-compatible, `NVARCHAR` throughout for Bangla (§13), `DECIMAL` for money, no binary columns anywhere (§14), and indexes chosen for the queries the screens actually issue.
+### The ASP.NET MVC 5 application — `src/`
+
+Built to §2: MVC 5 on .NET Framework 4.8, Razor views, Entity Framework 6, Hangfire, Bootstrap 5.
+
+The structural decision worth naming is the **three-project split**:
+
+| Project | Target | Why |
+|---|---|---|
+| `SchoolErp.Domain` | netstandard2.0 | The rules — GPA, identifiers, attendance, fees. No `System.Web`, no EF, no storage. |
+| `SchoolErp.Domain.Tests` | net9.0 + xUnit | **99 tests, all passing.** |
+| `SchoolErp.Web` | net48 | Controllers, Razor views, EF6, Hangfire. |
+
+`netstandard2.0` is referenceable from .NET Framework 4.8, so the web app consumes the domain library directly — *and* the rules compile and test on any platform. That is why the grading engine is verified rather than asserted, even though the web tier could not be compiled here (see **Known limits**).
+
+Pieces worth looking at:
+
+- **`RequireModuleAttribute`** — enforces the §4 switches at the controller boundary. Hiding a nav link is decoration; this is the gate. An Admin still gets through, to a page offering the switch.
+- **`AdmissionService`** — allocates identifiers through `usp_AllocateStudentId` inside a serializable transaction, so a failed insert rolls the serial back with it rather than burning a number.
+- **`ExamService`** — fetches marks, hands them to the shared `ResultCalculator`, stores the result. It contains no grading logic of its own.
+- **`NotificationService`** — email delivered via `SmtpClient` (provider is a `Web.config` change); SMS written to the queue and held, with its cost recorded.
+- **`AccountController`** — PBKDF2 with the iteration count stored alongside the hash, constant-time comparison, and one identical failure message for every rejection so guardian phone numbers can't be enumerated.
+
+### The schema — `database/schema.sql`
+
+The SQL Server schema §18 called for: 44 tables, 3 views, 2 stored procedures, EF6-compatible, `NVARCHAR` throughout for Bangla (§13), `DECIMAL` for money, no binary columns anywhere (§14), and indexes chosen for the queries the screens actually issue.
 
 Two things are procedures rather than constraints, because a constraint cannot express them:
 
@@ -163,8 +195,34 @@ Results are stored rather than derived on read: on 256 MB of RAM (§3), recomput
 
 ---
 
+## Building it
+
+```bash
+# The domain rules and their tests build and run anywhere:
+dotnet build src/SchoolErp.Domain
+dotnet test  src/SchoolErp.Domain.Tests      # 99 passing
+
+# The web application needs Windows — System.Web cannot be restored elsewhere:
+nuget restore src/SchoolErp.sln
+msbuild src/SchoolErp.Web/SchoolErp.Web.csproj /p:Configuration=Release
+```
+
+Then run `database/schema.sql` against a fresh SQL Server database and point the
+`SchoolErpContext` connection string at it.
+
+---
+
 ## Known limits
 
+- **`SchoolErp.Web` has never been compiled.** It was written on macOS, where
+  .NET Framework 4.8 and `System.Web` cannot be restored. The domain layer it
+  depends on *is* compiled and tested (99 assertions); the controllers, Razor
+  views and EF6 mapping are not. Expect to fix compile errors on the first
+  Windows build — most likely in the Razor views, where code-versus-markup
+  context is easy to get wrong and impossible to check without a compiler.
+- **`database/schema.sql` has never been executed.** No SQL Server was available.
 - The demo runs entirely client-side, so there is no real authentication — the role switcher exists precisely because there are no credentials to hold. Production uses ASP.NET Identity against the `Users` / `Roles` tables.
 - Institution-wide attendance trends sample every fourth student to keep a full-year roll-up inside a frame budget. Everything else — the daily register, eligibility, results, ledgers — is computed exactly.
-- The ASP.NET application itself is not in this repository. The specification, the domain rules and the schema are; the controllers and Razor views are the build that follows from them.
+- Google Drive upload for the nightly backup (§15) is a deliberate seam: it needs
+  a service-account credential the institution must create. The export,
+  compression, logging and 30-day pruning around it are written.

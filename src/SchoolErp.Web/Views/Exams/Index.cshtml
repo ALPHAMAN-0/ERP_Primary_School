@@ -1,0 +1,99 @@
+@model SchoolErp.Web.ViewModels.TabulationViewModel
+@{ ViewBag.Title = "Tabulation Sheet"; }
+
+<div class="page-head">
+    <div>
+        <h1 class="page-title">Tabulation Sheet</h1>
+        <p class="page-sub">@Model.SectionName · @Model.TermName · ranked by GPA, then total marks</p>
+    </div>
+    <div class="no-print">
+        <button onclick="window.print()" class="btn">Print</button>
+        @if (User.IsInRole("ADMIN"))
+        {
+            using (Html.BeginForm("Publish", "Exams", FormMethod.Post, new { style = "display:inline" }))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="examTermId" value="@Model.ExamTermId" />
+                <input type="hidden" name="publish" value="@(!Model.IsPublished)" />
+                <button type="submit" class="btn @(Model.IsPublished ? "" : "btn-primary")">
+                    @(Model.IsPublished ? "Unpublish results" : "Publish results")
+                </button>
+            }
+        }
+    </div>
+</div>
+
+@using (Html.BeginForm("Index", "Exams", FormMethod.Get, new { @class = "filter-bar no-print" }))
+{
+    <select name="classSectionId" class="form-select" onchange="this.form.submit()">
+        @foreach (var s in Model.Sections)
+        {
+            <option value="@s.ClassSectionId" selected="@(s.ClassSectionId == Model.ClassSectionId)">@s.DisplayName</option>
+        }
+    </select>
+    <select name="examTermId" class="form-select" onchange="this.form.submit()">
+        @foreach (var t in Model.Terms)
+        {
+            <option value="@t.ExamTermId" selected="@(t.ExamTermId == Model.ExamTermId)">@t.Name</option>
+        }
+    </select>
+}
+
+<div class="stat-row">
+    <div class="stat"><div class="stat-label">Appeared</div><div class="stat-value">@Model.Appeared</div></div>
+    <div class="stat"><div class="stat-label">Pass rate</div><div class="stat-value">@Model.PassRate.ToString("0.0")%</div></div>
+    <div class="stat"><div class="stat-label">Average GPA</div><div class="stat-value">@Model.AverageGpa.ToString("0.00")</div><div class="stat-meta">of passing candidates</div></div>
+    <div class="stat"><div class="stat-label">GPA 5.00</div><div class="stat-value">@Model.GpaFive</div></div>
+</div>
+
+<table class="table table-compact">
+    <thead>
+    <tr>
+        <th style="width:50px">#</th>
+        <th>Student</th>
+        @foreach (var subject in Model.Subjects.Where(s => !s.IsOptional))
+        {
+            <th class="text-end" title="@subject.Name">@subject.Code</th>
+        }
+        <th class="text-end">Total</th>
+        <th class="text-end">GPA</th>
+        <th class="text-center">Grade</th>
+        <th class="no-print"></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var entry in Model.Ranked)
+    {
+        <tr class="@(entry.Result.Passed ? "" : "row-failing")">
+            <td><strong>@entry.Rank</strong></td>
+            <td>
+                <div>@entry.Subject.FullName</div>
+                <div class="cell-sub mono">@entry.Subject.StudentId · Roll @entry.Subject.RollNumber</div>
+            </td>
+            @foreach (var subject in Model.Subjects.Where(s => !s.IsOptional))
+            {
+                var row = entry.Result.Rows.FirstOrDefault(r => r.Code == subject.Code);
+                <td class="text-end @(row != null && row.Passed == false ? "mark-failed" : "")">
+                    @(row == null || !row.Obtained.HasValue ? "—" : row.Obtained.Value.ToString("0.##"))
+                </td>
+            }
+            <td class="text-end">@entry.Result.TotalMarks</td>
+            <td class="text-end"><strong>@(entry.Result.Passed ? entry.Result.Gpa.ToString("0.00") : "0.00")</strong></td>
+            <td class="text-center">
+                <span class="grade grade-@(entry.Result.Passed ? entry.Result.Letter.Replace("+", "plus").Replace("-", "minus") : "F")">
+                    @(entry.Result.Passed ? entry.Result.Letter : "F")
+                </span>
+            </td>
+            <td class="no-print">
+                @Html.ActionLink("Report", "ReportCard", new { studentId = entry.Subject.StudentId, examTermId = Model.ExamTermId }, new { @class = "btn btn-sm" })
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<p class="muted small">
+    Failing marks are shown in red. A grade below 33% in any compulsory subject fails
+    the whole result regardless of the other grades (§7); the optional 4th subject is
+    exempt and contributes only grade points above 2.00.
+</p>

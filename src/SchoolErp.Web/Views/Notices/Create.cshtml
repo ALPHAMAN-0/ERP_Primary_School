@@ -1,0 +1,32 @@
+@model SchoolErp.Web.Data.Entities.Notice
+@{ ViewBag.Title = "Publish Notice"; }
+
+<div class="page-head"><h1 class="page-title">Publish Notice</h1></div>
+
+@using (Html.BeginForm("Create", "Notices", FormMethod.Post, new { @class = "card" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(false, "", new { @class = "flash flash-bad" })
+
+    <label>Title @Html.TextBoxFor(m => m.Title, new { @class = "form-control", required = "required" })</label>
+    <label>Notice text @Html.TextAreaFor(m => m.Body, new { @class = "form-control", rows = 6, required = "required" })</label>
+
+    <div class="field-grid">
+        <label>Audience
+            @Html.DropDownListFor(m => m.Audience, new SelectList(new[] { "all", "guardians", "staff", "class" }), new { @class = "form-select" })
+        </label>
+        <label>Priority
+            @Html.DropDownListFor(m => m.Priority, new SelectList(new[] { "normal", "urgent" }), new { @class = "form-select" })
+        </label>
+        <label>Published on @Html.TextBoxFor(m => m.PublishedOn, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })</label>
+        <label class="checkbox">@Html.CheckBoxFor(m => m.IsPinned) Pin to the top</label>
+    </div>
+
+    <h2 class="card-title">Delivery</h2>
+    <label class="checkbox"><input type="checkbox" name="sendEmail" value="true" checked /> Email — sent through the notification service</label>
+    <label class="checkbox"><input type="checkbox" name="sendSms" value="true" /> SMS — queued only, no gateway configured (§12)</label>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Publish</button>
+    </div>
+}

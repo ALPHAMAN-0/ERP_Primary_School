@@ -1,0 +1,23 @@
+@{ ViewBag.Title = "Module switched off"; }
+
+<div class="empty-state">
+    <h1 class="page-title">@ViewBag.ModuleName is switched off</h1>
+    <p class="page-sub">
+        Every module ships in the codebase and is switched on or off per institution (§4).
+        This one is currently off, so its screens are not available.
+    </p>
+    @if (ViewBag.CanEnable == true)
+    {
+        using (Html.BeginForm("ToggleModule", "Settings", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="moduleCode" value="@ViewBag.ModuleCode" />
+            <input type="hidden" name="enabled" value="true" />
+            <button type="submit" class="btn btn-primary">Switch @ViewBag.ModuleName on</button>
+        }
+    }
+    else
+    {
+        <p class="muted">Ask an administrator to enable it in Settings.</p>
+    }
+</div>

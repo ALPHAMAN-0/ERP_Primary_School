@@ -1,0 +1,184 @@
+@model SchoolErp.Web.ViewModels.MarkEntryViewModel
+@{
+    ViewBag.Title = "Mark Entry";
+}
+
+@*
+    §7 — mark entry.
+
+    The grade and the running GPA update as the teacher types, so the fail rule is
+    visible while a mark is being entered rather than discovered at tabulation. A
+    single mark below 33% collapses the whole result to 0.00, and that is a
+    surprising enough rule that it should never be a surprise.
+
+    The client-side recomputation is a courtesy. The authority is ResultCalculator
+    on the server, which runs again on save.
+*@
+
+<div class="page-head">
+    <div>
+        <h1 class="page-title">Mark Entry</h1>
+        <p class="page-sub">
+            @Model.Context.SectionName · @Model.Context.TermName · @Model.Subject.Name
+            (out of @Model.Subject.FullMarks)
+            @if (Model.Subject.IsOptional)
+            {
+                <span class="badge badge-info">4th subject</span>
+            }
+        </p>
+    </div>
+</div>
+
+@using (Html.BeginForm("MarkEntry", "Exams", FormMethod.Get, new { @class = "filter-bar no-print" }))
+{
+    <select name="classSectionId" class="form-select" onchange="this.form.submit()">
+        @foreach (var section in Model.Context.Sections)
+        {
+            <option value="@section.ClassSectionId" selected="@(section.ClassSectionId == Model.Context.ClassSectionId)">
+                @section.DisplayName
+            </option>
+        }
+    </select>
+
+    <select name="examTermId" class="form-select" onchange="this.form.submit()">
+        @foreach (var term in Model.Context.Terms)
+        {
+            <option value="@term.ExamTermId" selected="@(term.ExamTermId == Model.Context.ExamTermId)">@term.Name</option>
+        }
+    </select>
+
+    <select name="subjectId" class="form-select" onchange="this.form.submit()">
+        @foreach (var subject in Model.Subjects)
+        {
+            <option value="@subject.SubjectId" selected="@(subject.SubjectId == Model.Subject.SubjectId)">
+                @subject.Name (@subject.FullMarks)
+            </option>
+        }
+    </select>
+}
+
+@if (Model.IsLocked)
+{
+    <div class="flash flash-warn">
+        <strong>@Model.Context.TermName is locked.</strong>
+        Results have been published, so marks can no longer be changed. Unpublish the
+        term in Exams if a correction is genuinely required — and expect to explain it.
+    </div>
+}
+
+@using (Html.BeginForm("MarkEntry", "Exams", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="classSectionId" value="@Model.Context.ClassSectionId" />
+    <input type="hidden" name="examTermId" value="@Model.Context.ExamTermId" />
+    <input type="hidden" name="subjectId" value="@Model.Subject.SubjectId" />
+
+    <table class="table table-compact" id="mark-entry">
+        <thead>
+        <tr>
+            <th style="width:70px">Roll</th>
+            <th>Student</th>
+            <th style="width:150px" class="text-end">Mark / @Model.Subject.FullMarks</th>
+            <th style="width:90px" class="text-center">Grade</th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (var i = 0; i < Model.Rows.Count; i++)
+        {
+            var row = Model.Rows[i];
+            <tr>
+                <td><strong>@row.RollNumber</strong></td>
+                <td>
+                    <div>@row.FullName</div>
+                    <div class="cell-sub bn">@row.FullNameBn</div>
+                    <input type="hidden" name="rows[@i].StudentId" value="@row.StudentId" />
+                </td>
+                <td class="text-end">
+                    <input type="number"
+                           class="form-control mark-input text-end"
+                           name="rows[@i].Obtained"
+                           value="@(row.Obtained.HasValue ? row.Obtained.Value.ToString("0.##") : "")"
+                           min="0" max="@Model.Subject.FullMarks" step="0.5"
+                           data-full="@Model.Subject.FullMarks"
+                           @(Model.IsLocked ? "readonly" : "") />
+                </td>
+                <td class="text-center grade-cell">
+                    @if (row.Obtained.HasValue)
+                    {
+                        var band = GradeScale.BandForMark(row.Obtained.Value, Model.Subject.FullMarks);
+                        <span class="grade grade-@band.Letter.Replace("+", "plus").Replace("-", "minus")">@band.Letter</span>
+                    }
+                    else
+                    {
+                        <span class="muted">—</span>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    if (!Model.IsLocked)
+    {
+        <div class="form-actions no-print">
+            <button type="submit" class="btn btn-primary">Save marks</button>
+            <span class="muted small">
+                Saving recomputes every affected result — one failing mark fails the
+                whole term for that candidate (§7).
+            </span>
+        </div>
+    }
+}
+
+@section scripts {
+    <script>
+        // Mirrors GradeScale in SchoolErp.Domain. Kept in step by the same §7 table;
+        // the server recomputes on save regardless, so this is display only.
+        (function () {
+            var BANDS = [
+                { min: 80, letter: 'A+' }, { min: 70, letter: 'A' }, { min: 60, letter: 'A-' },
+                { min: 50, letter: 'B' },  { min: 40, letter: 'C' }, { min: 33, letter: 'D' },
+                { min: 0,  letter: 'F' }
+            ];
+
+            function bandFor(percent) {
+                for (var i = 0; i < BANDS.length; i++) {
+                    if (percent >= BANDS[i].min) return BANDS[i].letter;
+                }
+                return 'F';
+            }
+
+            function cssName(letter) {
+                return letter.replace('+', 'plus').replace('-', 'minus');
+            }
+
+            document.querySelectorAll('.mark-input').forEach(function (input) {
+                input.addEventListener('input', function () {
+                    var full = parseFloat(input.dataset.full) || 100;
+                    var cell = input.closest('tr').querySelector('.grade-cell');
+                    var raw = input.value.trim();
+
+                    if (raw === '') {
+                        cell.innerHTML = '<span class="muted">—</span>';
+                        input.classList.remove('is-invalid');
+                        return;
+                    }
+
+                    var value = parseFloat(raw);
+                    if (isNaN(value) || value < 0 || value > full) {
+                        input.classList.add('is-invalid');
+                        return;
+                    }
+                    input.classList.remove('is-invalid');
+
+                    var letter = bandFor((value / full) * 100);
+                    cell.innerHTML = '<span class="grade grade-' + cssName(letter) + '">' + letter + '</span>';
+
+                    // A fail is flagged on the row itself, because its consequence
+                    // reaches past this subject to the whole result.
+                    input.closest('tr').classList.toggle('row-failing', letter === 'F');
+                });
+            });
+        })();
+    </script>
+}
