@@ -2,6 +2,18 @@
 
 A full ERP for a composite school-and-college institution — 3,000+ students, eight roles, twelve modules — built to the specification in [`school_college_erp_requirements.md`](school_college_erp_requirements.md).
 
+## Architecture / How it Works
+
+```mermaid
+flowchart LR
+    A[User] --> B[Erp Primary School]
+    B --> C{Logic}
+    C --> D[(Data)]
+    C --> E[Output]
+    D --> C
+```
+
+
 **▶ Live demo: <https://alphaman-0.github.io/ERP_Primary_School/>**
 
 No login needed. Use the role switcher in the bottom-left to sign in as any of the eight roles.
