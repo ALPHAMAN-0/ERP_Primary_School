@@ -5,12 +5,17 @@ A full ERP for a composite school-and-college institution — 3,000+ students, e
 ## Architecture / How it Works
 
 ```mermaid
-flowchart LR
-    A[User] --> B[Erp Primary School]
-    B --> C{Logic}
-    C --> D[(Data)]
-    C --> E[Output]
-    D --> C
+flowchart TD
+    Spec["Requirements Spec"] --> Domain["SchoolErp.Domain"]
+    Spec --> DbSchema["Database Schema"]
+    Spec --> Twin["Browser Twin"]
+    Domain --> DomainTests["SchoolErp.Domain.Tests"]
+    Domain --> Web["SchoolErp.Web"]
+    DbSchema --> Web
+    Twin --> Core["Core Runtime"]
+    Core --> Screens["Screen Modules"]
+    Core --> Facilities["Facilities & Analytics"]
+    Screens --> Core
 ```
 
 
