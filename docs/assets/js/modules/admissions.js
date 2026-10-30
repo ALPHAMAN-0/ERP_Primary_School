@@ -29,7 +29,8 @@ import { createRequire } from 'module';
 var require = createRequire(import.meta.url);
 var module = { exports: {} };
 
-const require = createRequire(import.meta.url);
+var require = createRequire(import.meta.url);
+var module = { exports: {} };
 
 /** Compute the ID the next admission in the current month would receive. */
 function previewId(date) {
